@@ -1,0 +1,2412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>時間割管理 - 大学生向けスケジュール管理</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-secondary: #8B5CF6;
+      --color-accent: #F59E0B;
+      --color-success: #10B981;
+      --color-bg: #F9FAFB;
+      --color-surface: #FFFFFF;
+      --color-border: #E5E7EB;
+      --color-text: #1F2937;
+      --color-text-light: #6B7280;
+      --color-text-lighter: #9CA3AF;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --color-bg: #111827;
+        --color-surface: #1F2937;
+        --color-border: #374151;
+        --color-text: #F3F4F6;
+        --color-text-light: #D1D5DB;
+        --color-text-lighter: #9CA3AF;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --color-bg: #111827;
+      --color-surface: #1F2937;
+      --color-border: #374151;
+      --color-text: #F3F4F6;
+      --color-text-light: #D1D5DB;
+      --color-text-lighter: #9CA3AF;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: auto;
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      padding: 30px 0;
+      text-align: center;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--color-text);
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--color-text-light);
+      margin-bottom: 0;
+    }
+
+    /* Main content */
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        order: -1;
+      }
+    }
+
+    /* Schedule wrapper */
+    .schedule-wrapper {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 0;
+    }
+
+    /* CSS Grid Schedule */
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: 70px repeat(6, 1fr);
+      grid-auto-rows: auto;
+      gap: 0;
+      background: var(--color-surface);
+    }
+
+    .grid-item {
+      border: 1px solid var(--color-border);
+      padding: 8px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 2px;
+    }
+
+    /* Header row */
+    .grid-header {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      border: none;
+    }
+
+    .grid-header.time-header {
+      background: var(--color-text);
+      color: white;
+    }
+
+    /* Period label */
+    .period-label {
+      background: var(--color-bg);
+      font-weight: 600;
+      font-size: 13px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: none;
+      min-height: 60px;
+    }
+
+    .period-label .period {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .period-label .time {
+      font-size: 11px;
+      color: var(--color-text-light);
+    }
+
+    /* Class cell */
+    .class-cell {
+      background: var(--color-bg);
+      cursor: pointer;
+      transition: background-color 0.2s;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    .class-cell:hover {
+      background-color: rgba(59, 130, 246, 0.08);
+    }
+
+    /* Class item */
+    .class-item {
+      display: block;
+      width: 100%;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.2s;
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    /* 時間割コードをコピー済みの印（右上のチェック） */
+    .class-item.copied {
+      padding-right: 22px;
+    }
+
+    .class-item.copied::before {
+      content: '✓';
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      color: #10B981;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 16px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .syllabus-link {
+      color: var(--color-primary);
+      font-weight: 600;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .syllabus-link:hover {
+      text-decoration: underline;
+    }
+
+    /* 科目詳細の時間割コード（クリックでコピー） */
+    .detail-code-copyable {
+      cursor: pointer;
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+    }
+
+    .detail-code-copyable:hover {
+      color: var(--color-primary);
+    }
+
+    .copy-feedback {
+      margin-left: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-success);
+    }
+
+    .class-item:hover::after {
+      content: '×';
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 1;
+    }
+
+    /* Type-based colors */
+    .class-item[data-type="required"] {
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    }
+
+    .class-item[data-type="elective-required"] {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    }
+
+    .class-item[data-type="elective"] {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    }
+
+    .class-item[data-type="other"] {
+      background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--color-text);
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-list li {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--color-text-light);
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      color: var(--color-success);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--color-bg);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+      width: 100%;
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-danger {
+      background: #EF4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #DC2626;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-text-light);
+      font-size: 14px;
+      margin-top: 60px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--color-surface);
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--color-text);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--color-text);
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 10px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .modal-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .class-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .detail-label {
+      font-size: 13px;
+      color: var(--color-text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+      font-size: 16px;
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .class-detail-badge {
+      display: inline-block;
+      background: var(--color-primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      width: fit-content;
+    }
+
+    .class-type-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .class-type-tag.required {
+      background: #EF4444;
+    }
+
+    .class-type-tag.elective-required {
+      background: #F59E0B;
+    }
+
+    .class-type-tag.elective {
+      background: #84CC16;
+    }
+
+    .class-type-tag.other {
+      background: #9CA3AF;
+    }
+
+    .modal-buttons-detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    /* 選択中の学年・学期（グリッドの上） */
+    .current-term {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--color-text-light);
+    }
+
+    .current-term .term-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* 選択可能な選択授業（グリッドの下） */
+    .elective-list-card {
+      margin-top: 20px;
+    }
+
+    .elective-list-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .elective-list-count {
+      font-size: 13px;
+      color: var(--color-text-light);
+    }
+
+    .elective-list-hint {
+      font-size: 12px;
+      color: var(--color-text-light);
+      margin-bottom: 8px;
+    }
+
+    .elective-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 14px;
+      margin-bottom: 10px;
+    }
+
+    .elective-filters label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-light);
+    }
+
+    .elective-filters select {
+      padding: 6px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+    }
+
+    .elective-day-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 0 10px;
+    }
+
+    .slot-badge {
+      flex-shrink: 0;
+      min-width: 52px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--color-primary);
+    }
+
+    /* 空きコマから追加 */
+    .slot-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text-light);
+      margin: 14px 0 8px;
+    }
+
+    .slot-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .slot-option:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .slot-option:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .slot-option .class-type-tag {
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .slot-option-name {
+      font-weight: 600;
+    }
+
+    .slot-option-meta {
+      font-size: 11px;
+      color: var(--color-text-light);
+    }
+
+    .slot-option-note {
+      font-size: 11px;
+      color: #EF4444;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .schedule-grid {
+        grid-template-columns: 60px repeat(6, 1fr);
+      }
+
+      .grid-item {
+        min-height: 50px;
+        padding: 4px;
+        font-size: 12px;
+      }
+
+      .period-label {
+        min-height: 50px;
+      }
+
+      .class-item {
+        font-size: 11px;
+        padding: 4px 6px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="required_curriculum.js"></script>
+  <script src="elective_required.js"></script>
+  <script src="syllabus_data.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📚 時間割管理</h1>
+      <p class="subtitle">大学の履修登録を簡単に管理。あなたのペースで学習計画を立てましょう。</p>
+    </header>
+
+    <div class="main-content">
+      <div>
+        <div class="current-term" id="currentTermBar"></div>
+
+        <div class="schedule-wrapper">
+          <div class="schedule-grid" id="scheduleGrid">
+            <!-- ヘッダー行 -->
+            <div class="grid-item grid-header time-header"></div>
+            <div class="grid-item grid-header">月</div>
+            <div class="grid-item grid-header">火</div>
+            <div class="grid-item grid-header">水</div>
+            <div class="grid-item grid-header">木</div>
+            <div class="grid-item grid-header">金</div>
+            <div class="grid-item grid-header">土</div>
+
+            <!-- 1限 -->
+            <div class="grid-item period-label">
+              <span class="period">1限</span>
+              <span class="time">9:00-10:30</span>
+            </div>
+            <div class="grid-item class-cell" data-period="1" data-day="mon"></div>
+            <div class="grid-item class-cell" data-period="1" data-day="tue"></div>
+            <div class="grid-item class-cell" data-period="1" data-day="wed"></div>
+            <div class="grid-item class-cell" data-period="1" data-day="thu"></div>
+            <div class="grid-item class-cell" data-period="1" data-day="fri"></div>
+            <div class="grid-item class-cell" data-period="1" data-day="sat"></div>
+
+            <!-- 2限 -->
+            <div class="grid-item period-label">
+              <span class="period">2限</span>
+              <span class="time">10:40-12:10</span>
+            </div>
+            <div class="grid-item class-cell" data-period="2" data-day="mon"></div>
+            <div class="grid-item class-cell" data-period="2" data-day="tue"></div>
+            <div class="grid-item class-cell" data-period="2" data-day="wed"></div>
+            <div class="grid-item class-cell" data-period="2" data-day="thu"></div>
+            <div class="grid-item class-cell" data-period="2" data-day="fri"></div>
+            <div class="grid-item class-cell" data-period="2" data-day="sat"></div>
+
+            <!-- 3限 -->
+            <div class="grid-item period-label">
+              <span class="period">3限</span>
+              <span class="time">13:00-14:30</span>
+            </div>
+            <div class="grid-item class-cell" data-period="3" data-day="mon"></div>
+            <div class="grid-item class-cell" data-period="3" data-day="tue"></div>
+            <div class="grid-item class-cell" data-period="3" data-day="wed"></div>
+            <div class="grid-item class-cell" data-period="3" data-day="thu"></div>
+            <div class="grid-item class-cell" data-period="3" data-day="fri"></div>
+            <div class="grid-item class-cell" data-period="3" data-day="sat"></div>
+
+            <!-- 4限 -->
+            <div class="grid-item period-label">
+              <span class="period">4限</span>
+              <span class="time">14:40-16:10</span>
+            </div>
+            <div class="grid-item class-cell" data-period="4" data-day="mon"></div>
+            <div class="grid-item class-cell" data-period="4" data-day="tue"></div>
+            <div class="grid-item class-cell" data-period="4" data-day="wed"></div>
+            <div class="grid-item class-cell" data-period="4" data-day="thu"></div>
+            <div class="grid-item class-cell" data-period="4" data-day="fri"></div>
+            <div class="grid-item class-cell" data-period="4" data-day="sat"></div>
+
+            <!-- 5限 -->
+            <div class="grid-item period-label">
+              <span class="period">5限</span>
+              <span class="time">16:20-17:50</span>
+            </div>
+            <div class="grid-item class-cell" data-period="5" data-day="mon"></div>
+            <div class="grid-item class-cell" data-period="5" data-day="tue"></div>
+            <div class="grid-item class-cell" data-period="5" data-day="wed"></div>
+            <div class="grid-item class-cell" data-period="5" data-day="thu"></div>
+            <div class="grid-item class-cell" data-period="5" data-day="fri"></div>
+            <div class="grid-item class-cell" data-period="5" data-day="sat"></div>
+          </div>
+        </div>
+
+        <!-- 選択可能な選択授業 -->
+        <div class="card elective-list-card">
+          <div class="elective-list-header">
+            <h3>📋 選択可能な選択授業</h3>
+            <span class="elective-list-count" id="electiveListCount"></span>
+          </div>
+          <p class="elective-list-hint" id="electiveListHint"></p>
+          <div class="elective-filters">
+            <label>曜日
+              <select id="electiveFilterDay" onchange="renderElectiveList()">
+                <option value="">すべて</option>
+                <option value="mon">月</option>
+                <option value="tue">火</option>
+                <option value="wed">水</option>
+                <option value="thu">木</option>
+                <option value="fri">金</option>
+                <option value="sat">土</option>
+              </select>
+            </label>
+            <label>時限
+              <select id="electiveFilterPeriod" onchange="renderElectiveList()">
+                <option value="">すべて</option>
+                <option value="1">1限</option>
+                <option value="2">2限</option>
+                <option value="3">3限</option>
+                <option value="4">4限</option>
+                <option value="5">5限</option>
+              </select>
+            </label>
+            <label>分類
+              <select id="electiveFilterCategory" onchange="renderElectiveList()">
+                <option value="">すべて</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-secondary btn-sm" style="width: auto;" onclick="clearElectiveFilters()">条件をクリア</button>
+          </div>
+          <div id="electiveList"></div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3>📊 このターム</h3>
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-number" id="classCount">0</div>
+              <div class="stat-label">登録科目</div>
+            </div>
+            <div class="stat">
+              <div class="stat-number" id="creditCount">0</div>
+              <div class="stat-label">単位予定</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>💡 機能</h3>
+          <ul class="feature-list">
+            <li>時間割を一目で確認</li>
+            <li>学年・学期で科目を自動配置</li>
+            <li>科目を簡単に削除</li>
+            <li>自動保存機能</li>
+            <li>モバイル対応</li>
+          </ul>
+        </div>
+
+        <button class="btn btn-primary" onclick="openGradeSelectModal()">学年学期を選択</button>
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="openSelectiveRequiredOnlyModal()">選択必修を選ぶ</button>
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="openManualAddModal()">+ 科目を追加</button>
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="clearSchedule()">リセット</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Modal: Grade and Semester Selection with Selective Required -->
+  <div class="modal" id="gradeSelectModal">
+    <div class="modal-content" style="max-width: 760px; max-height: 90vh; overflow-y: auto;">
+      <!-- Step 1: Grade and Semester Selection -->
+      <div id="gradeSelectStep">
+        <h2>学年と学期を選択</h2>
+        <div class="form-group">
+          <label for="selectGrade">学年</label>
+          <select id="selectGrade" onchange="onGradeOrSemesterChange()">
+            <option value="">選択してください</option>
+            <option value="1">1年生</option>
+            <option value="2">2年生</option>
+            <option value="3">3年生</option>
+            <option value="4">4年生</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="selectSemester">学期</label>
+          <select id="selectSemester" onchange="onGradeOrSemesterChange()">
+            <option value="">選択してください</option>
+            <option value="1">前期</option>
+            <option value="2">後期</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 2: Selective Required Courses Selection -->
+      <div id="selectiveRequiredStep" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h2 style="margin: 0; font-size: 18px;">選択必修科目を選択</h2>
+          <span id="gradeSelectiveRequiredCounter" style="font-size: 14px; color: var(--color-text-light);">1/1</span>
+        </div>
+        <p id="gradeSelectiveRequiredDesc" style="margin-bottom: 15px; color: var(--color-text-light); font-size: 14px;"></p>
+        <div id="gradeSelectiveRequiredList" style="max-height: 55vh; overflow-y: auto; margin-bottom: 15px; border: 1px solid var(--color-border); padding: 10px; border-radius: 6px;">
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="modal-buttons" id="gradeSelectButtons">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeGradeSelectModal()">キャンセル</button>
+        <button type="button" class="btn btn-primary btn-sm" id="gradeSelectConfirmBtn" onclick="confirmGradeAndSelectiveRequired()">設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Selective Required Courses -->
+  <div class="modal" id="selectiveRequiredModal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 id="selectiveRequiredTitle" style="margin: 0;">選択必修科目を選択</h2>
+        <span id="selectiveRequiredCounter" style="font-size: 14px; color: var(--color-text-light);">1/1</span>
+      </div>
+      <p id="selectiveRequiredDesc" style="margin-bottom: 20px; color: var(--color-text-light);"></p>
+      <div id="selectiveRequiredList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+      </div>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeSelectiveRequiredModal()">スキップ</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmSelectiveRequired()">選択</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Class Details -->
+  <div class="modal" id="classDetailModal">
+    <div class="modal-content">
+      <div id="detailTypeTag"></div>
+      <h2 id="detailClassName">科目詳細</h2>
+      <div class="class-detail">
+        <div class="detail-item">
+          <span class="detail-label">時間割コード</span>
+          <span class="detail-value">
+            <span id="detailCode" onclick="copyDetailCode()"></span><span class="copy-feedback" id="detailCodeFeedback"></span>
+          </span>
+        </div>
+        <div class="detail-item" id="detailSyllabusItem" style="display: none;">
+          <span class="detail-label">シラバス</span>
+          <span class="detail-value">
+            <a id="detailSyllabusLink" class="syllabus-link" href="#" target="_blank" rel="noopener noreferrer">シラバスを開く ↗</a>
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">時限</span>
+          <span class="detail-value">
+            <span class="class-detail-badge" id="detailPeriod"></span>
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">曜日</span>
+          <span class="detail-value" id="detailDay"></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">コマ数</span>
+          <span class="detail-value" id="detailPeriods"></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">単位数</span>
+          <span class="detail-value" id="detailCredits"></span>
+        </div>
+      </div>
+      <div class="modal-buttons-detail">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeClassDetailModal()">閉じる</button>
+        <button type="button" class="btn btn-danger btn-sm" id="detailDeleteBtn" onclick="deleteSelectedClass()">削除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirm Reset -->
+  <div class="modal" id="confirmResetModal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <h2>時間割をリセット</h2>
+      <p style="font-size: 16px; margin: 20px 0;">本当に全ての科目を削除してもよろしいですか？</p>
+      <div class="modal-buttons" style="gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeResetModal()">キャンセル</button>
+        <button type="button" class="btn btn-danger" onclick="confirmReset()" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Manual class addition -->
+  <div class="modal" id="manualAddModal">
+    <div class="modal-content" style="max-width: 450px;">
+      <h2>科目を追加</h2>
+      <form onsubmit="handleManualAddSubmit(event)">
+        <div class="form-group">
+          <label for="manualClassName">科目名</label>
+          <div style="position: relative;">
+            <input type="text" id="manualClassName" placeholder="科目名を検索..." required autocomplete="off" oninput="filterCourses()">
+            <div id="courseDropdown" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--color-surface); border: 1px solid var(--color-border); border-top: none; max-height: 200px; overflow-y: auto; display: none; z-index: 1001; border-radius: 0 0 6px 6px;"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="manualCode">時間割コード</label>
+          <input type="text" id="manualCode" placeholder="自動入力されます" readonly>
+        </div>
+        <div class="form-group">
+          <label for="manualPeriod">時限</label>
+          <select id="manualPeriod" required>
+            <option value="">選択してください</option>
+            <option value="1">1限（9:00-10:30）</option>
+            <option value="2">2限（10:40-12:10）</option>
+            <option value="3">3限（13:00-14:30）</option>
+            <option value="4">4限（14:40-16:10）</option>
+            <option value="5">5限（16:20-17:50）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="manualDay">曜日</label>
+          <select id="manualDay" required>
+            <option value="">選択してください</option>
+            <option value="mon">月曜日</option>
+            <option value="tue">火曜日</option>
+            <option value="wed">水曜日</option>
+            <option value="thu">木曜日</option>
+            <option value="fri">金曜日</option>
+            <option value="sat">土曜日</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="manualType">区分</label>
+          <select id="manualType" required>
+            <option value="other">その他</option>
+            <option value="required">必修</option>
+            <option value="elective-required">選択必修</option>
+            <option value="elective">選択授業</option>
+          </select>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeManualAddModal()">キャンセル</button>
+          <button type="submit" class="btn btn-primary btn-sm">追加</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add class from empty slot -->
+  <div class="modal" id="slotAddModal">
+    <div class="modal-content" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+      <h2 id="slotAddTitle" style="margin-bottom: 8px;">追加できる授業</h2>
+      <label id="slotAddFilterLabel" style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-light); cursor: pointer;">
+        <input type="checkbox" id="slotAddShowAll" onchange="renderSlotCandidates()">
+        <span id="slotAddFilterText">すべての学年・学期を表示</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-light); cursor: pointer; margin-top: 4px;">
+        <input type="checkbox" id="slotAddShowRequired" onchange="renderSlotCandidates()">
+        <span id="slotAddRequiredText">必修授業も表示</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-light); cursor: pointer; margin-top: 4px;">
+        <input type="checkbox" id="slotAddShowElectiveRequired" onchange="renderSlotCandidates()">
+        <span id="slotAddElectiveRequiredText">選択必修も表示</span>
+      </label>
+      <div id="slotAddList" style="margin-top: 6px;"></div>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeSlotAddModal()">閉じる</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="openManualAddFromSlot()">手動で追加</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 大学生向けスケジュール管理ツール。あなたの学生生活をサポートします。</p>
+  </footer>
+
+  <script>
+    const CREDITS_PER_CLASS = 2;
+    const COLORS = ['sample-1', 'sample-2', 'sample-3', 'sample-4', 'sample-5'];
+    const PERIOD_TIMES = {
+      '1': '1限 (9:00-10:30)',
+      '2': '2限 (10:40-12:10)',
+      '3': '3限 (13:00-14:30)',
+      '4': '4限 (14:40-16:10)',
+      '5': '5限 (16:20-17:50)'
+    };
+    const DAY_NAMES = {
+      'mon': '月曜日',
+      'tue': '火曜日',
+      'wed': '水曜日',
+      'thu': '木曜日',
+      'fri': '金曜日',
+      'sat': '土曜日'
+    };
+
+    let selectedClassElement = null;
+    let selectedClassType = null;
+
+    const TYPE_LABELS = {
+      'required': '必修',
+      'elective-required': '選択必修',
+      'elective': '選択授業',
+      'other': 'その他'
+    };
+
+    function openClassDetailModal(classElement, period, day, type = 'other', code = '') {
+      selectedClassElement = classElement;
+      selectedClassType = type;
+
+      document.getElementById('detailClassName').textContent = classElement.textContent;
+      // syllabus_data.js に url があればシラバスへのリンクを表示
+      const syllabusCourse = findSyllabusCourse(code, classElement.textContent);
+      const syllabusItem = document.getElementById('detailSyllabusItem');
+      const syllabusLink = document.getElementById('detailSyllabusLink');
+      if (syllabusCourse && syllabusCourse.url) {
+        syllabusLink.href = syllabusCourse.url;
+        syllabusLink.title = syllabusCourse.url;
+        syllabusItem.style.display = '';
+      } else {
+        syllabusItem.style.display = 'none';
+      }
+
+      const detailCode = document.getElementById('detailCode');
+      detailCode.textContent = code || '－';
+      detailCode.classList.toggle('detail-code-copyable', !!code);
+      detailCode.title = code ? 'クリックしてコピー' : '';
+      document.getElementById('detailCodeFeedback').textContent =
+        code && getCopiedSet().has(classKey(classElement)) ? '✓ コピー済み' : '';
+      document.getElementById('detailPeriod').textContent = PERIOD_TIMES[period];
+      document.getElementById('detailDay').textContent = DAY_NAMES[day];
+
+      // コマ数と単位数を取得（1科目=2単位）
+      const periods = classElement.dataset.periods ? JSON.parse(classElement.dataset.periods) : [period];
+      const numPeriods = periods.length;
+      const credits = CREDITS_PER_CLASS;
+
+      document.getElementById('detailPeriods').textContent = `${numPeriods}コマ`;
+      document.getElementById('detailCredits').textContent = `${credits}単位`;
+
+      const typeTag = document.getElementById('detailTypeTag');
+      typeTag.innerHTML = `<span class="class-type-tag ${type}">${TYPE_LABELS[type]}</span>`;
+
+      const deleteBtn = document.getElementById('detailDeleteBtn');
+      deleteBtn.style.display = 'block';
+
+      document.getElementById('classDetailModal').classList.add('active');
+    }
+
+    function closeClassDetailModal() {
+      document.getElementById('classDetailModal').classList.remove('active');
+      selectedClassElement = null;
+      selectedClassType = null;
+    }
+
+    function deleteSelectedClass() {
+      if (selectedClassElement) {
+        selectedClassElement.remove();
+        saveSchedule();
+        updateStats();
+        closeClassDetailModal();
+      }
+    }
+
+    let currentGrade = null;
+    let currentSemester = null;
+    let selectedSelectiveRequired = {};
+    let isSelectiveRequiredOnly = false;
+
+    function openGradeSelectModal() {
+      isSelectiveRequiredOnly = false;
+      selectedSelectiveRequired = {};
+      document.getElementById('selectGrade').value = '';
+      document.getElementById('selectSemester').value = '';
+      document.getElementById('gradeSelectStep').style.display = 'block';
+      document.getElementById('selectiveRequiredStep').style.display = 'none';
+      document.getElementById('gradeSelectModal').classList.add('active');
+    }
+
+    function openSelectiveRequiredOnlyModal() {
+      isSelectiveRequiredOnly = true;
+      selectedSelectiveRequired = {};
+      document.getElementById('selectGrade').value = '';
+      document.getElementById('selectSemester').value = '';
+      document.getElementById('gradeSelectStep').style.display = 'block';
+      document.getElementById('selectiveRequiredStep').style.display = 'none';
+      document.getElementById('gradeSelectModal').classList.add('active');
+    }
+
+    function onGradeOrSemesterChange() {
+      const grade = document.getElementById('selectGrade').value;
+      const semester = document.getElementById('selectSemester').value;
+
+      if (!grade || !semester) {
+        document.getElementById('selectiveRequiredStep').style.display = 'none';
+        return;
+      }
+
+      // 「学年学期を選択」の場合は選択必修ステップを表示しない
+      if (!isSelectiveRequiredOnly) {
+        document.getElementById('selectiveRequiredStep').style.display = 'none';
+        return;
+      }
+
+      // ここから先は「選択必修を選びなおす」の場合のみ実行
+      const selectiveGroupsForGradeSemester = getSelectiveGroups(grade, semester);
+
+      if (selectiveGroupsForGradeSemester.length === 0) {
+        document.getElementById('selectiveRequiredStep').style.display = 'none';
+        return;
+      }
+
+      selectedSelectiveRequired = {};
+      const container = document.getElementById('gradeSelectiveRequiredList');
+      container.innerHTML = '';
+
+      selectiveGroupsForGradeSemester.forEach((group, groupIndex) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.style.marginBottom = '15px';
+
+        const maxSelect = getMaxSelect(group);
+
+        const groupTitle = document.createElement('h4');
+        groupTitle.textContent = maxSelect > 1 ? `${group.name}（最大${maxSelect}科目）` : group.name;
+        groupTitle.style.marginBottom = '8px';
+        groupTitle.style.fontSize = '14px';
+        groupDiv.appendChild(groupTitle);
+
+        group.courses.forEach((course, courseIndex) => {
+          const label = document.createElement('label');
+          label.style.display = 'flex';
+          label.style.alignItems = 'center';
+          label.style.marginBottom = '6px';
+          label.style.cursor = 'pointer';
+          label.style.fontSize = '13px';
+
+          // maxSelect が 2 以上なら複数選べるチェックボックス、1 ならラジオボタン
+          const radio = document.createElement('input');
+          radio.type = maxSelect > 1 ? 'checkbox' : 'radio';
+          radio.name = `grade_group_${groupIndex}`;
+          radio.value = course.code;
+          radio.dataset.groupId = group.id;
+          radio.dataset.courseIndex = courseIndex;
+          radio.style.marginRight = '8px';
+          radio.onchange = () => {
+            const checked = Array.from(document.querySelectorAll(`input[name="grade_group_${groupIndex}"]:checked`));
+            if (checked.length > 0) {
+              selectedSelectiveRequired[group.id] = checked.map(input => {
+                const c = group.courses[input.dataset.courseIndex];
+                return { code: c.code, name: c.name, index: Number(input.dataset.courseIndex) };
+              });
+            } else {
+              delete selectedSelectiveRequired[group.id];
+            }
+            updateGradeSelectiveRequiredCounter(selectiveGroupsForGradeSemester.length);
+            refreshSelectiveConflicts();
+          };
+
+          const span = document.createElement('span');
+          span.textContent = course.name;
+
+          const conflictNote = document.createElement('span');
+          conflictNote.className = 'conflict-note';
+          conflictNote.style.cssText = 'margin-left: 6px; font-size: 11px; color: #EF4444;';
+
+          label.appendChild(radio);
+          label.appendChild(span);
+          label.appendChild(conflictNote);
+          groupDiv.appendChild(label);
+        });
+
+        const skipButton = document.createElement('button');
+        skipButton.type = 'button';
+        skipButton.className = 'btn btn-sm';
+        skipButton.textContent = 'スキップ';
+        skipButton.style.marginTop = '6px';
+        skipButton.style.fontSize = '11px';
+        skipButton.style.padding = '3px 10px';
+        skipButton.style.width = 'auto';
+        skipButton.onclick = () => {
+          delete selectedSelectiveRequired[group.id];
+          document.querySelectorAll(`input[name="grade_group_${groupIndex}"]`).forEach(r => r.checked = false);
+          updateGradeSelectiveRequiredCounter(selectiveGroupsForGradeSemester.length);
+          refreshSelectiveConflicts();
+        };
+        groupDiv.appendChild(skipButton);
+
+        container.appendChild(groupDiv);
+      });
+
+      document.getElementById('gradeSelectiveRequiredDesc').textContent = `${selectiveGroupsForGradeSemester.length}つのグループから選択してください（スキップ可能）`;
+      updateGradeSelectiveRequiredCounter(selectiveGroupsForGradeSemester.length);
+      refreshSelectiveConflicts();
+      document.getElementById('selectiveRequiredStep').style.display = 'block';
+    }
+
+    function getMaxSelect(group) {
+      const n = Number(group.maxSelect);
+      return Number.isInteger(n) && n >= 1 ? n : 1;
+    }
+
+    // 科目のコマ一覧（"時限-曜日" の配列）。時限・曜日がなければ null
+    function getCourseSlots(group, course) {
+      const periods = course.periods || (course.period ? [course.period] : null)
+        || group.periods || (group.period ? [group.period] : null);
+      const day = course.day || group.day;
+      if (!periods || !day) return null;
+      return periods.map(p => `${p}-${day}`);
+    }
+
+    // 時間割上の科目がどの選択必修グループのものか（なければ null）
+    function findGroupIdOfItem(item) {
+      for (let groupId in ELECTIVE_REQUIRED_GROUPS) {
+        if (ELECTIVE_REQUIRED_GROUPS[groupId].courses.some(c => c.code === item.dataset.code || c.name === item.textContent)) {
+          return groupId;
+        }
+      }
+      return null;
+    }
+
+    // 時間割の科目やモーダル内で選択中の科目と重なる選択肢、maxSelect を超える選択肢を選べなくする
+    function refreshSelectiveConflicts() {
+      const inputs = Array.from(document.querySelectorAll('#gradeSelectiveRequiredList input[type="radio"], #gradeSelectiveRequiredList input[type="checkbox"]'));
+
+      for (let pass = 0; pass < 3; pass++) {
+        // 使用中のコマ → 科目名（グループID・科目index付き）
+        const occupied = {};
+        document.querySelectorAll('.class-item').forEach(item => {
+          const cell = item.closest('.class-cell');
+          const groupId = findGroupIdOfItem(item);
+          // モーダルで選び直すグループの既存科目は置き換わるので除外
+          if (groupId && selectedSelectiveRequired[groupId]) return;
+          (occupied[`${cell.dataset.period}-${cell.dataset.day}`] ||= []).push({ groupId, name: item.textContent });
+        });
+        Object.keys(selectedSelectiveRequired).forEach(groupId => {
+          const group = ELECTIVE_REQUIRED_GROUPS[groupId];
+          selectedSelectiveRequired[groupId].forEach(sel => {
+            const course = group.courses[sel.index];
+            (getCourseSlots(group, course) || []).forEach(slot => {
+              (occupied[slot] ||= []).push({ groupId, index: sel.index, name: course.name });
+            });
+          });
+        });
+
+        let changed = false;
+        inputs.forEach(input => {
+          const groupId = input.dataset.groupId;
+          const group = ELECTIVE_REQUIRED_GROUPS[groupId];
+          const courseIndex = Number(input.dataset.courseIndex);
+          const course = group.courses[courseIndex];
+          const multi = getMaxSelect(group) > 1;
+          const conflicts = (getCourseSlots(group, course) || [])
+            .flatMap(slot => occupied[slot] || [])
+            // 1科目選択のグループ内は選び直しになるので除外。複数選択のグループは同じグループ内の別科目とも重複チェックする
+            .filter(o => o.groupId !== groupId || (multi && o.index !== undefined && o.index !== courseIndex));
+
+          const blocked = conflicts.length > 0;
+          const selectedCount = (selectedSelectiveRequired[groupId] || []).length;
+          const overLimit = multi && !input.checked && selectedCount >= getMaxSelect(group);
+
+          input.disabled = blocked || overLimit;
+          const label = input.parentElement;
+          label.style.opacity = input.disabled ? '0.45' : '1';
+          label.style.cursor = input.disabled ? 'not-allowed' : 'pointer';
+          label.querySelector('.conflict-note').textContent = blocked ? `（${[...new Set(conflicts.map(c => c.name))].join('・')}と重複）` : '';
+
+          if (blocked && input.checked) {
+            input.checked = false;
+            const rest = (selectedSelectiveRequired[groupId] || []).filter(sel => sel.index !== courseIndex);
+            if (rest.length > 0) selectedSelectiveRequired[groupId] = rest;
+            else delete selectedSelectiveRequired[groupId];
+            changed = true;
+          }
+        });
+        if (!changed) break;
+      }
+
+      updateGradeSelectiveRequiredCounter(getSelectiveGroups(
+        document.getElementById('selectGrade').value, document.getElementById('selectSemester').value).length);
+    }
+
+    function updateGradeSelectiveRequiredCounter(total) {
+      const selected = Object.keys(selectedSelectiveRequired).length;
+      document.getElementById('gradeSelectiveRequiredCounter').textContent = `${selected}/${total}`;
+    }
+
+    function confirmGradeAndSelectiveRequired() {
+      const grade = document.getElementById('selectGrade').value;
+      const semester = document.getElementById('selectSemester').value;
+      const selectiveRequiredStepDisplay = document.getElementById('selectiveRequiredStep').style.display;
+
+      if (!grade || !semester) {
+        alert('学年と学期を選択してください');
+        return;
+      }
+
+      // 空きコマから追加するときの候補を絞り込むため、現在の学年・学期を覚えておく
+      localStorage.setItem('currentTerm', `${grade}_${semester}`);
+
+      // 選択必修ステップが表示されている場合：完了処理
+      if (selectiveRequiredStepDisplay !== 'none') {
+        placeSelectedSelectiveRequired();
+        closeGradeSelectModal();
+        return;
+      }
+
+      // 「学年学期を選択」の場合：カリキュラムのみ追加
+      if (!isSelectiveRequiredOnly) {
+        closeGradeSelectModal();
+        handleGradeSelect({ preventDefault: () => {}, targetGrade: grade, targetSemester: semester });
+        return;
+      }
+
+      // 「選択必修を選びなおす」の場合：選択必修ステップに進む
+      document.getElementById('selectiveRequiredStep').style.display = 'block';
+      document.getElementById('gradeSelectConfirmBtn').textContent = '完了';
+    }
+
+    function closeGradeSelectModal() {
+      document.getElementById('gradeSelectModal').classList.remove('active');
+      document.getElementById('gradeSelectStep').style.display = 'block';
+      document.getElementById('selectiveRequiredStep').style.display = 'none';
+      document.getElementById('gradeSelectConfirmBtn').textContent = '設定';
+    }
+
+    function openSelectiveRequiredModal(grade, semester) {
+      currentGrade = grade;
+      currentSemester = semester;
+
+      const selectiveGroupsForGradeSemester = getSelectiveGroups(grade, semester);
+
+      if (selectiveGroupsForGradeSemester.length === 0) {
+        closeGradeSelectModal();
+        handleGradeSelect({ preventDefault: () => {}, targetGrade: grade, targetSemester: semester });
+        return;
+      }
+
+      const container = document.getElementById('selectiveRequiredList');
+      container.innerHTML = '';
+
+      selectiveGroupsForGradeSemester.forEach((group, groupIndex) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.style.marginBottom = '20px';
+
+        const groupTitle = document.createElement('h4');
+        groupTitle.textContent = group.name;
+        groupTitle.style.marginBottom = '10px';
+        groupDiv.appendChild(groupTitle);
+
+        group.courses.forEach((course, courseIndex) => {
+          const label = document.createElement('label');
+          label.style.display = 'flex';
+          label.style.alignItems = 'center';
+          label.style.marginBottom = '8px';
+          label.style.cursor = 'pointer';
+
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = `group_${groupIndex}`;
+          radio.value = course.code;
+          radio.dataset.groupId = group.id;
+          radio.style.marginRight = '10px';
+          radio.onchange = () => {
+            selectedSelectiveRequired[group.id] = [{ code: course.code, name: course.name, index: courseIndex }];
+            updateSelectiveRequiredCounter(selectiveGroupsForGradeSemester.length);
+          };
+
+          const span = document.createElement('span');
+          span.textContent = course.name;
+          span.style.fontSize = '14px';
+
+          label.appendChild(radio);
+          label.appendChild(span);
+          groupDiv.appendChild(label);
+        });
+
+        const skipButton = document.createElement('button');
+        skipButton.type = 'button';
+        skipButton.className = 'btn btn-sm';
+        skipButton.textContent = 'スキップ';
+        skipButton.style.marginTop = '10px';
+        skipButton.style.fontSize = '12px';
+        skipButton.style.padding = '4px 12px';
+        skipButton.onclick = () => {
+          delete selectedSelectiveRequired[group.id];
+          document.querySelectorAll(`input[name="group_${groupIndex}"]`).forEach(r => r.checked = false);
+          updateSelectiveRequiredCounter(selectiveGroupsForGradeSemester.length);
+        };
+        groupDiv.appendChild(skipButton);
+
+        container.appendChild(groupDiv);
+      });
+
+      document.getElementById('selectiveRequiredTitle').textContent = `${grade}年${semester === '1' ? '前期' : '後期'} 選択必修科目を選択`;
+      document.getElementById('selectiveRequiredDesc').textContent = `${selectiveGroupsForGradeSemester.length}つのグループから、各1科目選択してください（スキップ可能）`;
+      updateSelectiveRequiredCounter(selectiveGroupsForGradeSemester.length);
+
+      closeGradeSelectModal();
+      document.getElementById('selectiveRequiredModal').classList.add('active');
+    }
+
+    function closeSelectiveRequiredModal() {
+      document.getElementById('selectiveRequiredModal').classList.remove('active');
+    }
+
+    function updateSelectiveRequiredCounter(total) {
+      const selected = Object.keys(selectedSelectiveRequired).length;
+      document.getElementById('selectiveRequiredCounter').textContent = `${selected}/${total}`;
+    }
+
+    function confirmSelectiveRequired() {
+      handleGradeSelect({ preventDefault: () => {}, targetGrade: currentGrade, targetSemester: currentSemester });
+      placeSelectedSelectiveRequired();
+      closeSelectiveRequiredModal();
+    }
+
+    // 学年・学期に該当する選択必修グループを取得（grade/semester は数値・文字列どちらでも可）
+    function getSelectiveGroups(grade, semester) {
+      const groups = [];
+      for (let groupId in ELECTIVE_REQUIRED_GROUPS) {
+        const group = ELECTIVE_REQUIRED_GROUPS[groupId];
+        if (group.grade.map(String).includes(String(grade)) && group.semester.map(String).includes(String(semester))) {
+          groups.push({ id: groupId, ...group });
+        }
+      }
+      return groups;
+    }
+
+    // 科目を時間割に配置（複数コマ対応）
+    function placeClass({ name, code, type, periods, day }) {
+      periods.forEach((p, i) => {
+        const cell = document.querySelector(`.class-cell[data-period="${p}"][data-day="${day}"]`);
+        if (!cell) return;
+        const item = document.createElement('span');
+        item.className = 'class-item';
+        item.textContent = name;
+        item.title = 'クリックして詳細を表示';
+        item.dataset.type = type;
+        item.dataset.code = code;
+        item.dataset.periods = JSON.stringify(periods);
+        if (i > 0) item.dataset.isMultiPeriodContinue = 'true';
+        item.onclick = (e) => {
+          e.stopPropagation();
+          openClassDetailModal(item, p, day, type, code);
+        };
+        cell.appendChild(item);
+      });
+    }
+
+    // ---------- 空きコマから授業を追加 ----------
+    let slotAddTarget = null;
+
+    const termLabel = key => {
+      const [g, s] = String(key).split('_');
+      return `${g}年${s === '1' ? '前期' : '後期'}`;
+    };
+
+    function getCurrentTerm() {
+      return localStorage.getItem('currentTerm');
+    }
+
+    // 科目が占めるコマがすべて空いているか
+    function isSlotFree(periods, day) {
+      return periods.every(p => {
+        const cell = document.querySelector(`.class-cell[data-period="${p}"][data-day="${day}"]`);
+        return cell && !cell.querySelector('.class-item');
+      });
+    }
+
+    // 指定コマに入る授業の候補
+    function getSlotCandidates(period, day) {
+      return getAvailableCourses().filter(c => c.day === day && c.periods.includes(Number(period)));
+    }
+
+    // 今の時間割に追加できる授業を syllabus_data.js（SYLLABUS_COURSES）から集める
+    // 時限・曜日は syllabus_data.js に書かれているものだけを使う。コマが埋まっている・登録済みの授業は除く
+    function getAvailableCourses() {
+      const candidates = [];
+      const seen = new Set();
+      const placedKeys = new Set(Array.from(document.querySelectorAll('.class-item')).map(i => `${i.dataset.code}|${i.textContent}`));
+
+      SYLLABUS_COURSES.forEach(c => {
+        const periods = (c.periods || (c.period ? [c.period] : [])).map(Number);
+        const day = c.day;
+        if (!periods.length || !DAY_NAMES[day]) return;
+
+        const key = `${c.code}|${c.name}|${periods.join(',')}|${c.day}`;
+        if (seen.has(key) || placedKeys.has(`${c.code}|${c.name}`)) return;
+        if (!isSlotFree(periods, day)) return;
+        seen.add(key);
+
+        // grade・semester があれば学年・学期で絞り込めるようにする（片方だけなら、もう片方はすべて対象。両方なければ常に表示）
+        const hasGrade = Array.isArray(c.grade) && c.grade.length > 0;
+        const hasSemester = Array.isArray(c.semester) && c.semester.length > 0;
+        const grades = hasGrade ? c.grade : [1, 2, 3, 4];
+        const semesters = hasSemester ? c.semester : ['1', '2'];
+        const terms = hasGrade || hasSemester ? grades.flatMap(g => semesters.map(s => `${g}_${s}`)) : null;
+        // group が選択必修グループを指していれば、入れ替え・上限の判定に使う
+        const group = c.group && ELECTIVE_REQUIRED_GROUPS[c.group];
+
+        candidates.push({
+          name: c.name,
+          code: c.code,
+          type: c.type || 'other',
+          periods,
+          day: c.day,
+          category: c.category || 'その他',
+          terms,
+          groupId: group ? c.group : null,
+          groupName: group ? group.name : ''
+        });
+      });
+
+      return candidates;
+    }
+
+    // 選択必修グループの状況：maxSelect 1 なら入れ替え対象、上限に達していれば追加不可
+    function getGroupPlacement(groupId) {
+      const group = ELECTIVE_REQUIRED_GROUPS[groupId];
+      const placed = Array.from(document.querySelectorAll('.class-item:not([data-is-multi-period-continue])'))
+        .filter(item => findGroupIdOfItem(item) === groupId);
+      const max = getMaxSelect(group);
+      return { placed, max, replace: max === 1 && placed.length > 0, full: max > 1 && placed.length >= max };
+    }
+
+    function openSlotAddModal(period, day) {
+      slotAddTarget = { period, day };
+      document.getElementById('slotAddTitle').textContent = `${DAY_NAMES[day]} ${period}限に追加できる授業`;
+      document.getElementById('slotAddShowAll').checked = false;
+      document.getElementById('slotAddShowRequired').checked = false;
+      document.getElementById('slotAddShowElectiveRequired').checked = false;
+      renderSlotCandidates();
+      document.getElementById('slotAddModal').classList.add('active');
+    }
+
+    function closeSlotAddModal() {
+      document.getElementById('slotAddModal').classList.remove('active');
+      slotAddTarget = null;
+    }
+
+    function renderSlotCandidates() {
+      if (!slotAddTarget) return;
+      const { period, day } = slotAddTarget;
+      const term = getCurrentTerm();
+      const showAll = document.getElementById('slotAddShowAll').checked;
+
+      // 学年・学期が未選択なら絞り込みなし
+      document.getElementById('slotAddFilterLabel').style.display = term ? 'flex' : 'none';
+      document.getElementById('slotAddFilterText').textContent = term
+        ? `すべての学年・学期を表示（現在：${termLabel(term)}）`
+        : 'すべての学年・学期を表示';
+
+      const termFiltered = getSlotCandidates(period, day)
+        .filter(c => !term || showAll || !c.terms || c.terms.includes(term));
+
+      // 必修・選択必修はチェックを付けたときだけ表示
+      const hiddenTypes = [
+        { type: 'required', label: '必修授業', checkbox: 'slotAddShowRequired', text: 'slotAddRequiredText' },
+        { type: 'elective-required', label: '選択必修', checkbox: 'slotAddShowElectiveRequired', text: 'slotAddElectiveRequiredText' }
+      ];
+      const hiddenNotes = [];
+      let candidates = termFiltered;
+      hiddenTypes.forEach(h => {
+        const count = termFiltered.filter(c => c.type === h.type).length;
+        document.getElementById(h.text).textContent = `${h.label}も表示（${count}件）`;
+        if (!document.getElementById(h.checkbox).checked) {
+          candidates = candidates.filter(c => c.type !== h.type);
+          if (count > 0) hiddenNotes.push(`${h.label}が${count}件`);
+        }
+      });
+
+      const list = document.getElementById('slotAddList');
+      list.innerHTML = '';
+
+      // syllabus_data.js の分類（category）ごとに見出しを付ける
+      const categories = [...new Set(candidates.map(c => c.category))];
+
+      categories.forEach(category => {
+        const items = candidates.filter(c => c.category === category);
+
+        const heading = document.createElement('div');
+        heading.className = 'slot-section-title';
+        heading.textContent = category;
+        list.appendChild(heading);
+
+        items.forEach(c => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'slot-option';
+
+          const tag = document.createElement('span');
+          tag.className = `class-type-tag ${c.type}`;
+          tag.textContent = TYPE_LABELS[c.type] || 'その他';
+
+          const body = document.createElement('span');
+          const name = document.createElement('div');
+          name.className = 'slot-option-name';
+          name.textContent = c.name;
+
+          const periodText = c.periods.length > 1 ? `${c.periods[0]}〜${c.periods[c.periods.length - 1]}限` : `${c.periods[0]}限`;
+          const meta = document.createElement('div');
+          meta.className = 'slot-option-meta';
+          meta.textContent = [
+            c.code,
+            `${DAY_NAMES[c.day]} ${periodText}`,
+            c.groupName ? `グループ：${c.groupName}` : '',
+            c.terms ? c.terms.map(termLabel).join('・') : ''
+          ].filter(Boolean).join(' ／ ');
+
+          body.appendChild(name);
+          body.appendChild(meta);
+
+          if (c.groupId) {
+            const status = getGroupPlacement(c.groupId);
+            const note = document.createElement('div');
+            note.className = 'slot-option-note';
+            if (status.full) {
+              button.disabled = true;
+              note.textContent = `このグループは最大${status.max}科目まで登録済みです`;
+            } else if (status.replace) {
+              note.textContent = `「${status.placed[0].textContent}」と入れ替えます`;
+            }
+            if (note.textContent) body.appendChild(note);
+          }
+
+          button.appendChild(tag);
+          button.appendChild(body);
+          button.onclick = () => addSlotCandidate(c);
+          list.appendChild(button);
+        });
+      });
+
+      if (candidates.length === 0) {
+        const empty = document.createElement('p');
+        empty.style.cssText = 'margin: 16px 0; font-size: 14px; color: var(--color-text-light);';
+        empty.textContent = (term && !showAll
+          ? `${termLabel(term)}にこのコマで追加できる授業はありません。`
+          : 'このコマで追加できる授業はありません。')
+          + (hiddenNotes.length > 0 ? `（${hiddenNotes.join('、')}あります）` : '');
+        list.appendChild(empty);
+      }
+    }
+
+    function addSlotCandidate(c) {
+      if (c.groupId) {
+        const status = getGroupPlacement(c.groupId);
+        if (status.full) return;
+        if (status.replace) {
+          const group = ELECTIVE_REQUIRED_GROUPS[c.groupId];
+          const codes = group.courses.map(x => x.code);
+          const names = group.courses.map(x => x.name);
+          document.querySelectorAll('.class-item').forEach(item => {
+            if (codes.includes(item.dataset.code) || names.includes(item.textContent)) item.remove();
+          });
+        }
+      }
+
+      placeClass({ name: c.name, code: c.code, type: c.type, periods: c.periods, day: c.day });
+      saveSchedule();
+      updateStats();
+      closeSlotAddModal();
+    }
+
+    // ---------- 選択可能な選択授業の一覧（グリッドの下） ----------
+    const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+    // グリッドの上に選択中の学年・学期を表示
+    function renderCurrentTerm() {
+      const bar = document.getElementById('currentTermBar');
+      if (!bar) return;
+      const term = getCurrentTerm();
+      bar.innerHTML = term
+        ? `<span class="term-badge">${termLabel(term)}</span><span>の時間割</span>`
+        : '<span>学年・学期が未選択です（「学年学期を選択」から設定できます）</span>';
+    }
+
+    function renderElectiveList() {
+      renderCurrentTerm();
+      const list = document.getElementById('electiveList');
+      if (!list) return;
+
+      const term = getCurrentTerm();
+      const all = getAvailableCourses()
+        .filter(c => c.type === 'elective')
+        .filter(c => !term || !c.terms || c.terms.includes(term))
+        .sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day) || a.periods[0] - b.periods[0] || a.name.localeCompare(b.name, 'ja'));
+
+      // 分類の選択肢を作り直す（選択中の分類は保つ）
+      const categorySelect = document.getElementById('electiveFilterCategory');
+      const currentCategory = categorySelect.value;
+      const categories = [...new Set(all.map(c => c.category))].sort((a, b) => a.localeCompare(b, 'ja'));
+      categorySelect.innerHTML = '<option value="">すべて</option>';
+      categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = `${cat}（${all.filter(c => c.category === cat).length}）`;
+        categorySelect.appendChild(option);
+      });
+      categorySelect.value = categories.includes(currentCategory) ? currentCategory : '';
+
+      const dayFilter = document.getElementById('electiveFilterDay').value;
+      const periodFilter = document.getElementById('electiveFilterPeriod').value;
+      const categoryFilter = categorySelect.value;
+      const electives = all.filter(c =>
+        (!dayFilter || c.day === dayFilter) &&
+        (!periodFilter || c.periods.includes(Number(periodFilter))) &&
+        (!categoryFilter || c.category === categoryFilter));
+
+      const filtered = electives.length !== all.length;
+      document.getElementById('electiveListCount').textContent = filtered ? `${electives.length}件 / 全${all.length}件` : `${all.length}件`;
+      document.getElementById('electiveListHint').textContent =
+        `${term ? `${termLabel(term)}・` : ''}時間割の空いているコマに入る選択授業です。クリックすると追加されます。`;
+
+      list.innerHTML = '';
+      DAY_ORDER.forEach(day => {
+        const items = electives.filter(c => c.day === day);
+        if (items.length === 0) return;
+
+        const heading = document.createElement('div');
+        heading.className = 'slot-section-title';
+        heading.textContent = `${DAY_NAMES[day]}（${items.length}件）`;
+        list.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.className = 'elective-day-items';
+        items.forEach(c => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'slot-option';
+          button.title = 'クリックして時間割に追加';
+
+          const periodText = c.periods.length > 1 ? `${c.periods[0]}〜${c.periods[c.periods.length - 1]}限` : `${c.periods[0]}限`;
+          const badge = document.createElement('span');
+          badge.className = 'slot-badge';
+          badge.textContent = `${DAY_NAMES[c.day].charAt(0)} ${periodText}`;
+
+          const body = document.createElement('span');
+          const name = document.createElement('div');
+          name.className = 'slot-option-name';
+          name.textContent = c.name;
+          const meta = document.createElement('div');
+          meta.className = 'slot-option-meta';
+          meta.textContent = [c.code, c.category].filter(Boolean).join(' ／ ');
+          body.appendChild(name);
+          body.appendChild(meta);
+
+          button.appendChild(badge);
+          button.appendChild(body);
+          button.onclick = () => addSlotCandidate(c);
+          grid.appendChild(button);
+        });
+        list.appendChild(grid);
+      });
+
+      if (electives.length === 0) {
+        const empty = document.createElement('p');
+        empty.style.cssText = 'margin: 8px 0; font-size: 14px; color: var(--color-text-light);';
+        empty.textContent = filtered || all.length > 0
+          ? '条件に合う選択授業はありません。'
+          : '追加できる選択授業はありません。';
+        list.appendChild(empty);
+      }
+    }
+
+    function clearElectiveFilters() {
+      document.getElementById('electiveFilterDay').value = '';
+      document.getElementById('electiveFilterPeriod').value = '';
+      document.getElementById('electiveFilterCategory').value = '';
+      renderElectiveList();
+    }
+
+    function openManualAddFromSlot() {
+      const target = slotAddTarget;
+      closeSlotAddModal();
+      openManualAddModal();
+      if (target) {
+        document.getElementById('manualPeriod').value = target.period;
+        document.getElementById('manualDay').value = target.day;
+      }
+    }
+
+    // 選択した選択必修科目を時間割に配置する
+    // 時限・曜日は科目側（course.periods/period, course.day）→ グループ側（group.periods/period, group.day）の順に参照
+    function placeSelectedSelectiveRequired() {
+      const unplaced = [];
+
+      Object.keys(selectedSelectiveRequired).forEach(groupId => {
+        const group = ELECTIVE_REQUIRED_GROUPS[groupId];
+        if (!group) return;
+
+        // 同じグループの科目が既に入っていれば置き換える
+        const groupCodes = group.courses.map(c => c.code);
+        const groupNames = group.courses.map(c => c.name);
+        document.querySelectorAll('.class-item').forEach(item => {
+          if (groupCodes.includes(item.dataset.code) || groupNames.includes(item.textContent)) {
+            item.remove();
+          }
+        });
+
+        selectedSelectiveRequired[groupId].forEach(selected => {
+          // 同じ時間割コードで時限違いの科目があるため、選択位置（index）で特定する
+          const course = group.courses[selected.index] || group.courses.find(c => c.code === selected.code);
+          if (!course) return;
+
+          const periods = course.periods || (course.period ? [course.period] : null)
+            || group.periods || (group.period ? [group.period] : null);
+          const day = course.day || group.day;
+          if (!periods || !day) {
+            unplaced.push(course.name);
+            return;
+          }
+
+          placeClass({ name: course.name, code: course.code, type: course.type || 'elective-required', periods, day });
+        });
+      });
+
+      saveSchedule();
+      updateStats();
+
+      if (unplaced.length > 0) {
+        alert(`次の科目は時限・曜日のデータがないため配置できませんでした。\n「+ 科目を追加」から追加してください。\n\n・${unplaced.join('\n・')}`);
+      }
+    }
+
+    function handleGradeSelect(event) {
+      if (event.preventDefault) event.preventDefault();
+
+      const grade = event.targetGrade || document.getElementById('selectGrade').value;
+      const semester = event.targetSemester || document.getElementById('selectSemester').value;
+
+      if (!grade || !semester) return;
+
+      const curriculumKey = `${grade}_${semester}`;
+      const subjects = CURRICULUM[curriculumKey] || [];
+
+      clearScheduleDisplay();
+
+      subjects.forEach((subject, index) => {
+        // periods または period を取得（複数コマ対応）
+        const periods = subject.periods || [subject.period];
+        const firstPeriod = periods[0];
+
+        // 最初の時限のセルに表示
+        const cell = document.querySelector(`.class-cell[data-period="${firstPeriod}"][data-day="${subject.day}"]`);
+        if (cell) {
+          const classItem = document.createElement('span');
+          classItem.className = 'class-item';
+          classItem.textContent = subject.name;
+          classItem.title = 'クリックして詳細を表示';
+          classItem.dataset.type = subject.type;
+          classItem.dataset.code = subject.code;
+          classItem.dataset.periods = JSON.stringify(periods);
+          classItem.onclick = (e) => {
+            e.stopPropagation();
+            openClassDetailModal(classItem, firstPeriod, subject.day, subject.type, subject.code);
+          };
+          cell.appendChild(classItem);
+
+          // 複数時限にまたがる場合、以降のセルにも表示
+          if (periods.length > 1) {
+            for (let i = 1; i < periods.length; i++) {
+              const nextCell = document.querySelector(`.class-cell[data-period="${periods[i]}"][data-day="${subject.day}"]`);
+              if (nextCell) {
+                const duplicateItem = document.createElement('span');
+                duplicateItem.className = 'class-item';
+                duplicateItem.textContent = subject.name;
+                duplicateItem.title = 'クリックして詳細を表示';
+                duplicateItem.dataset.type = subject.type;
+                duplicateItem.dataset.code = subject.code;
+                duplicateItem.dataset.periods = JSON.stringify(periods);
+                duplicateItem.dataset.isMultiPeriodContinue = 'true';
+                duplicateItem.onclick = (e) => {
+                  e.stopPropagation();
+                  openClassDetailModal(duplicateItem, periods[i], subject.day, subject.type, subject.code);
+                };
+                nextCell.appendChild(duplicateItem);
+              }
+            }
+          }
+        }
+      });
+
+      saveSchedule();
+      updateStats();
+    }
+
+    function clearScheduleDisplay() {
+      document.querySelectorAll('.class-cell').forEach(cell => {
+        const items = cell.querySelectorAll('.class-item');
+        items.forEach(item => item.remove());
+      });
+    }
+
+    function clearSchedule() {
+      document.getElementById('confirmResetModal').classList.add('active');
+    }
+
+    function closeResetModal() {
+      document.getElementById('confirmResetModal').classList.remove('active');
+    }
+
+    function confirmReset() {
+      clearScheduleDisplay();
+      localStorage.removeItem(COPIED_KEY);
+      localStorage.setItem('workshopAdded', 'true');
+      saveSchedule();
+      updateStats();
+      closeResetModal();
+    }
+
+    function saveSchedule() {
+      const scheduleData = {};
+      document.querySelectorAll('.class-cell').forEach(cell => {
+        const period = cell.dataset.period;
+        const day = cell.dataset.day;
+        const key = `${period}-${day}`;
+        // 複数時限の継続分は除外（最初の時限だけ保存）
+        const classes = Array.from(cell.querySelectorAll('.class-item:not([data-is-multi-period-continue])')).map(item => ({
+          name: item.textContent,
+          type: item.dataset.type || 'other',
+          code: item.dataset.code || '',
+          periods: item.dataset.periods ? JSON.parse(item.dataset.periods) : [period]
+        }));
+        if (classes.length > 0) {
+          scheduleData[key] = classes;
+        }
+      });
+      localStorage.setItem('schedule', JSON.stringify(scheduleData));
+      renderElectiveList();
+      refreshCopiedMarks();
+    }
+
+    // 時間割の授業に対応する syllabus_data.js の科目を探す（時間割コード＋科目名、なければ時間割コードのみで一致）
+    function findSyllabusCourse(code, name) {
+      if (!code && !name) return null;
+      return SYLLABUS_COURSES.find(c => c.code === code && c.name === name)
+        || (code ? SYLLABUS_COURSES.find(c => c.code === code) : null);
+    }
+
+    // ---------- 時間割コードのコピー ----------
+    const COPIED_KEY = 'copiedClasses';
+
+    // 授業の識別キー（時間割コード＋科目名）
+    function classKey(item) {
+      return `${item.dataset.code || ''}|${item.textContent}`;
+    }
+
+    function getCopiedSet() {
+      try {
+        return new Set(JSON.parse(localStorage.getItem(COPIED_KEY) || '[]'));
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    // コピー済みの授業に右上のチェックを付ける（複数コマの継続分も含む）
+    function refreshCopiedMarks() {
+      const copied = getCopiedSet();
+      document.querySelectorAll('.class-item').forEach(item => {
+        item.classList.toggle('copied', copied.has(classKey(item)));
+      });
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        // file:// などで Clipboard API が使えない場合の代替
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const ok = document.execCommand('copy');
+        textarea.remove();
+        return ok;
+      }
+    }
+
+    async function copyDetailCode() {
+      if (!selectedClassElement) return;
+      const code = selectedClassElement.dataset.code;
+      if (!code) return;
+
+      const feedback = document.getElementById('detailCodeFeedback');
+      const ok = await copyText(code);
+      if (!ok) {
+        feedback.textContent = 'コピーできませんでした';
+        return;
+      }
+
+      const copied = getCopiedSet();
+      copied.add(classKey(selectedClassElement));
+      localStorage.setItem(COPIED_KEY, JSON.stringify([...copied]));
+      refreshCopiedMarks();
+      feedback.textContent = '✓ コピーしました';
+    }
+
+    function loadSchedule() {
+      try {
+        const scheduleData = JSON.parse(localStorage.getItem('schedule') || '{}');
+        Object.keys(scheduleData).forEach(key => {
+          const [period, day] = key.split('-');
+          const cell = document.querySelector(`.class-cell[data-period="${period}"][data-day="${day}"]`);
+          if (cell) {
+            scheduleData[key].forEach((classData, index) => {
+              const className = typeof classData === 'string' ? classData : classData.name;
+              const classType = typeof classData === 'string' ? 'other' : (classData.type || 'other');
+              const classCode = typeof classData === 'string' ? '' : (classData.code || '');
+              const periods = typeof classData === 'string' ? [period] : (classData.periods || [period]);
+
+              // 旧バージョンで継続分まで保存されたデータは読み飛ばす（先頭時限のデータから再生成される）
+              if (String(periods[0]) !== String(period)) return;
+
+              const classItem = document.createElement('span');
+              classItem.className = 'class-item';
+              classItem.textContent = className;
+              classItem.title = 'クリックして詳細を表示';
+              classItem.dataset.type = classType;
+              classItem.dataset.code = classCode;
+              classItem.dataset.periods = JSON.stringify(periods);
+              classItem.onclick = (e) => {
+                e.stopPropagation();
+                openClassDetailModal(classItem, period, day, classType, classCode);
+              };
+              cell.appendChild(classItem);
+
+              // 複数時限にまたがる場合、以降のセルにも表示
+              if (periods.length > 1) {
+                for (let i = 1; i < periods.length; i++) {
+                  const nextCell = document.querySelector(`.class-cell[data-period="${periods[i]}"][data-day="${day}"]`);
+                  if (nextCell) {
+                    const duplicateItem = document.createElement('span');
+                    duplicateItem.className = 'class-item';
+                    duplicateItem.textContent = className;
+                    duplicateItem.title = 'クリックして詳細を表示';
+                    duplicateItem.dataset.type = classType;
+                    duplicateItem.dataset.code = classCode;
+                    duplicateItem.dataset.periods = JSON.stringify(periods);
+                    duplicateItem.dataset.isMultiPeriodContinue = 'true';
+                    duplicateItem.onclick = (e) => {
+                      e.stopPropagation();
+                      openClassDetailModal(duplicateItem, periods[i], day, classType, classCode);
+                    };
+                    nextCell.appendChild(duplicateItem);
+                  }
+                }
+              }
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Failed to load schedule:', e);
+      }
+    }
+
+    function updateStats() {
+      // 複数時限の継続分は除外してカウント（科目数）
+      const uniqueClasses = document.querySelectorAll('.class-item:not([data-is-multi-period-continue])');
+      const classCount = uniqueClasses.length;
+
+      // 単位数計算：1科目=2単位
+      const totalCredits = classCount * CREDITS_PER_CLASS;
+
+      document.getElementById('classCount').textContent = classCount;
+      document.getElementById('creditCount').textContent = totalCredits;
+    }
+
+    function addDefaultWorkshop() {
+      const defaultCourse = {
+        name: "共通基盤ワークショップ１Ａ　～「豊かさ」とは何だろう？～",
+        code: "Aw101Taf",
+        type: "required",
+        periods: [1, 2],
+        day: "mon"
+      };
+
+      const cell = document.querySelector(`.class-cell[data-period="${defaultCourse.periods[0]}"][data-day="${defaultCourse.day}"]`);
+      if (!cell) return;
+
+      const existingItem = cell.querySelector('.class-item');
+      if (existingItem) return;
+
+      // 最初の時限に表示
+      const classItem = document.createElement('span');
+      classItem.className = 'class-item';
+      classItem.textContent = defaultCourse.name;
+      classItem.dataset.type = defaultCourse.type;
+      classItem.dataset.code = defaultCourse.code;
+      classItem.dataset.periods = JSON.stringify(defaultCourse.periods);
+      classItem.title = 'クリックして詳細を表示';
+      classItem.onclick = (e) => {
+        e.stopPropagation();
+        openClassDetailModal(classItem, defaultCourse.periods[0], defaultCourse.day, defaultCourse.type, defaultCourse.code);
+      };
+      cell.appendChild(classItem);
+
+      // 2番目の時限に表示（継続分として）
+      const nextCell = document.querySelector(`.class-cell[data-period="${defaultCourse.periods[1]}"][data-day="${defaultCourse.day}"]`);
+      if (nextCell) {
+        const duplicateItem = document.createElement('span');
+        duplicateItem.className = 'class-item';
+        duplicateItem.textContent = defaultCourse.name;
+        duplicateItem.dataset.type = defaultCourse.type;
+        duplicateItem.dataset.code = defaultCourse.code;
+        duplicateItem.dataset.periods = JSON.stringify(defaultCourse.periods);
+        duplicateItem.dataset.isMultiPeriodContinue = 'true';
+        duplicateItem.title = 'クリックして詳細を表示';
+        duplicateItem.onclick = (e) => {
+          e.stopPropagation();
+          openClassDetailModal(duplicateItem, defaultCourse.periods[1], defaultCourse.day, defaultCourse.type, defaultCourse.code);
+        };
+        nextCell.appendChild(duplicateItem);
+      }
+
+      saveSchedule();
+    }
+
+    function filterCourses() {
+      const input = document.getElementById('manualClassName');
+      const dropdown = document.getElementById('courseDropdown');
+      const query = input.value.toLowerCase().trim();
+
+      if (query.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const filtered = SYLLABUS_COURSES.filter(course =>
+        course.name.toLowerCase().includes(query)
+      );
+
+      dropdown.innerHTML = '';
+      filtered.slice(0, 20).forEach(course => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 10px; border-bottom: 1px solid var(--color-border); cursor: pointer; font-size: 14px;';
+        item.textContent = course.name;
+        item.onmouseover = () => item.style.background = 'var(--color-bg)';
+        item.onmouseout = () => item.style.background = 'transparent';
+        item.onclick = () => selectCourse(course);
+        dropdown.appendChild(item);
+      });
+
+      dropdown.style.display = filtered.length > 0 ? 'block' : 'none';
+    }
+
+    function selectCourse(course) {
+      document.getElementById('manualClassName').value = course.name;
+      document.getElementById('manualCode').value = course.code;
+      document.getElementById('manualType').value = course.type;
+
+      const firstPeriod = course.period || (course.periods && course.periods[0]);
+      if (course.type !== 'other' && firstPeriod && course.day) {
+        document.getElementById('manualPeriod').value = firstPeriod;
+        document.getElementById('manualDay').value = course.day;
+      }
+
+      document.getElementById('courseDropdown').style.display = 'none';
+    }
+
+    function openManualAddModal() {
+      document.getElementById('manualClassName').value = '';
+      document.getElementById('manualCode').value = '';
+      document.getElementById('manualPeriod').value = '';
+      document.getElementById('manualDay').value = '';
+      document.getElementById('manualType').value = 'other';
+      document.getElementById('courseDropdown').style.display = 'none';
+      document.getElementById('manualAddModal').classList.add('active');
+    }
+
+    function closeManualAddModal() {
+      document.getElementById('manualAddModal').classList.remove('active');
+    }
+
+    function handleManualAddSubmit(event) {
+      event.preventDefault();
+
+      const className = document.getElementById('manualClassName').value.trim();
+      const classCode = document.getElementById('manualCode').value.trim();
+      const period = document.getElementById('manualPeriod').value;
+      const day = document.getElementById('manualDay').value;
+      const type = document.getElementById('manualType').value;
+
+      if (!className || !period || !day) {
+        alert('全ての項目を入力してください');
+        return;
+      }
+
+      const cell = document.querySelector(`.class-cell[data-period="${period}"][data-day="${day}"]`);
+      if (cell) {
+        if (type !== 'other') {
+          const existingItem = cell.querySelector('.class-item');
+          if (existingItem) {
+            alert('このコマには既に科目が入っています。削除してから追加してください。');
+            return;
+          }
+        }
+
+        const classItem = document.createElement('span');
+        classItem.className = 'class-item';
+        classItem.textContent = className;
+        classItem.title = 'クリックして詳細を表示';
+        classItem.dataset.type = type;
+        classItem.dataset.code = classCode;
+        classItem.dataset.periods = JSON.stringify([parseInt(period)]);
+        classItem.onclick = (e) => {
+          e.stopPropagation();
+          openClassDetailModal(classItem, period, day, type, classCode);
+        };
+        cell.appendChild(classItem);
+
+        saveSchedule();
+        updateStats();
+        closeManualAddModal();
+      }
+    }
+
+    window.addEventListener('load', () => {
+      const hasExistingSchedule = localStorage.getItem('schedule');
+      const workshopAdded = localStorage.getItem('workshopAdded');
+      loadSchedule();
+
+      if (!hasExistingSchedule && !workshopAdded) {
+        addDefaultWorkshop();
+        localStorage.setItem('workshopAdded', 'true');
+      }
+
+      updateStats();
+      renderElectiveList();
+      refreshCopiedMarks();
+
+      // モーダルイベントリスナー
+      document.getElementById('gradeSelectModal').addEventListener('click', (e) => {
+        if (e.target.id === 'gradeSelectModal') {
+          closeGradeSelectModal();
+        }
+      });
+
+      document.getElementById('classDetailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'classDetailModal') {
+          closeClassDetailModal();
+        }
+      });
+
+      document.getElementById('manualAddModal').addEventListener('click', (e) => {
+        if (e.target.id === 'manualAddModal') {
+          closeManualAddModal();
+        }
+      });
+
+      document.getElementById('confirmResetModal').addEventListener('click', (e) => {
+        if (e.target.id === 'confirmResetModal') {
+          closeResetModal();
+        }
+      });
+
+      document.getElementById('selectiveRequiredModal').addEventListener('click', (e) => {
+        if (e.target.id === 'selectiveRequiredModal') {
+          closeSelectiveRequiredModal();
+        }
+      });
+
+      document.getElementById('slotAddModal').addEventListener('click', (e) => {
+        if (e.target.id === 'slotAddModal') {
+          closeSlotAddModal();
+        }
+      });
+
+      // 空いているコマをクリックすると追加できる授業を表示
+      document.querySelectorAll('.class-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+          if (!cell.querySelector('.class-item')) {
+            openSlotAddModal(cell.dataset.period, cell.dataset.day);
+          }
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('courseDropdown');
+        const input = document.getElementById('manualClassName');
+        if (dropdown && !dropdown.contains(e.target) && !input.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
