@@ -282,20 +282,20 @@ const ELECTIVE_REQUIRED_GROUPS = {
     semester: ["2"],
     maxSelect: 1,
     courses: [
-      { code: "B30F10K3", name: "外交と安全保障", period: 2, day: "mon", type: "elective-required" },
-      { code: "B30F09K3", name: "国際政治経済", period: 3, day: "mon", type: "elective-required" },
-      { code: "B30F12K3", name: "市場と経済", period: 3, day: "mon", type: "elective-required" },
-      { code: "B30F09L3", name: "国際政治経済", period: 2, day: "tue", type: "elective-required" },
-      { code: "B30F11K3", name: "グローバルデータ分析", period: 2, day: "tue", type: "elective-required" },
-      { code: "B30F14K3", name: "会計と財務", period: 2, day: "tue", type: "elective-required" },
-      { code: "B30F11L3", name: "グローバルデータ分析", period: 3, day: "tue", type: "elective-required" },
-      { code: "B30F13L3", name: "企業経営", period: 3, day: "tue", type: "elective-required" },
-      { code: "B30F14L3", name: "会計と財務", period: 3, day: "tue", type: "elective-required" },
-      { code: "B30F13L3", name: "企業経営", period: 4, day: "tue", type: "elective-required" },
-      { code: "B30F10L3", name: "外交と安全保障", period: 2, day: "wed", type: "elective-required" },
-      { code: "B30F09M3", name: "国際政治経済", period: 2, day: "thu", type: "elective-required" },
-      { code: "B30F12L3", name: "市場と経済", period: 3, day: "thu", type: "elective-required" },
-      { code: "B30F13M3", name: "企業経営", period: 4, day: "thu", type: "elective-required" }
+      { code: "B30F10K3", name: "外交と安全保障(月2コマ)", period: 2, day: "mon", type: "elective-required" },
+      { code: "B30F09K3", name: "国際政治経済(月3コマ)", period: 3, day: "mon", type: "elective-required" },
+      { code: "B30F12K3", name: "市場と経済(月3コマ)", period: 3, day: "mon", type: "elective-required" },
+      { code: "B30F09L3", name: "国際政治経済(火2コマ)", period: 2, day: "tue", type: "elective-required" },
+      { code: "B30F11K3", name: "グローバルデータ分析(火2コマ)", period: 2, day: "tue", type: "elective-required" },
+      { code: "B30F14K3", name: "会計と財務(火2コマ)", period: 2, day: "tue", type: "elective-required" },
+      { code: "B30F11L3", name: "グローバルデータ分析(火2コマ)", period: 3, day: "tue", type: "elective-required" },
+      { code: "B30F13L3", name: "企業経営(火3コマ)", period: 3, day: "tue", type: "elective-required" },
+      { code: "B30F14L3", name: "会計と財務(火3コマ)", period: 3, day: "tue", type: "elective-required" },
+      { code: "B30F13L3", name: "企業経営(火4コマ)", period: 4, day: "tue", type: "elective-required" },
+      { code: "B30F10L3", name: "外交と安全保障(水2コマ)", period: 2, day: "wed", type: "elective-required" },
+      { code: "B30F09M3", name: "国際政治経済(木2コマ)", period: 2, day: "thu", type: "elective-required" },
+      { code: "B30F12L3", name: "市場と経済(木3コマ)", period: 3, day: "thu", type: "elective-required" },
+      { code: "B30F13M3", name: "企業経営(木4コマ)", period: 4, day: "thu", type: "elective-required" }
     ]
   }
 };
