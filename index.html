@@ -685,6 +685,17 @@
       color: var(--color-text-light);
     }
 
+    .elective-filters input[type="text"] {
+      padding: 6px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      min-width: 200px;
+    }
+
     .elective-filters select {
       padding: 6px 8px;
       border: 1px solid var(--color-border);
@@ -928,6 +939,9 @@
                 <option value="">すべて</option>
               </select>
             </label>
+            <label>検索
+              <input type="text" id="electiveFilterSearch" placeholder="科目名・時間割コード" oninput="renderElectiveList()">
+            </label>
             <button type="button" class="btn btn-secondary btn-sm" style="width: auto;" onclick="clearElectiveFilters()">条件をクリア</button>
           </div>
           <div id="electiveList"></div>
@@ -963,7 +977,7 @@
         <button class="btn btn-primary" onclick="openGradeSelectModal()">学年学期を選択</button>
         <button class="btn btn-primary" style="margin-top: 10px;" onclick="openSelectiveRequiredOnlyModal()">選択必修を選ぶ</button>
         <button class="btn btn-primary" style="margin-top: 10px;" onclick="openManualAddModal()">+ 科目を追加</button>
-        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openHelpModal()">❓ 使い方説明</button>
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openHelpModal()">❓ 使い方</button>
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="clearSchedule()">リセット</button>
       </aside>
     </div>
@@ -1198,6 +1212,7 @@
       <ul class="help-list">
         <li>登録した内容は自動で保存され、次に開いたときも残ります。</li>
         <li>授業を消すときは、授業をクリックして詳細の「削除」を押します。全部消すときは「リセット」です（✓ の印も消えます）。</li>
+        <li>科目のデータ（時間割コード・曜日・時限など）を直すときは、同じフォルダの <b>course_editor.html</b> を開いてください。</li>
       </ul>
 
       <div class="modal-buttons">
@@ -1939,10 +1954,12 @@
       const dayFilter = document.getElementById('electiveFilterDay').value;
       const periodFilter = document.getElementById('electiveFilterPeriod').value;
       const categoryFilter = categorySelect.value;
+      const query = document.getElementById('electiveFilterSearch').value.trim().toLowerCase();
       const electives = all.filter(c =>
         (!dayFilter || c.day === dayFilter) &&
         (!periodFilter || c.periods.includes(Number(periodFilter))) &&
-        (!categoryFilter || c.category === categoryFilter));
+        (!categoryFilter || c.category === categoryFilter) &&
+        (!query || c.name.toLowerCase().includes(query) || (c.code || '').toLowerCase().includes(query)));
 
       const filtered = electives.length !== all.length;
       document.getElementById('electiveListCount').textContent = filtered ? `${electives.length}件 / 全${all.length}件` : `${all.length}件`;
@@ -2004,6 +2021,7 @@
       document.getElementById('electiveFilterDay').value = '';
       document.getElementById('electiveFilterPeriod').value = '';
       document.getElementById('electiveFilterCategory').value = '';
+      document.getElementById('electiveFilterSearch').value = '';
       renderElectiveList();
     }
 
