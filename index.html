@@ -560,6 +560,51 @@
       margin-top: 24px;
     }
 
+    /* 使い方モーダル */
+    .help-content {
+      max-width: 620px;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .help-heading {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      margin: 18px 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+    }
+
+    .help-steps,
+    .help-list {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--color-text-light);
+    }
+
+    .help-steps b,
+    .help-list b {
+      color: var(--color-text);
+    }
+
+    .help-list .class-type-tag {
+      margin: 0 2px;
+    }
+
+    .help-skip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--color-text-light);
+      cursor: pointer;
+    }
+
     /* 選択中の学年・学期（グリッドの上） */
     .term-row {
       display: flex;
@@ -918,6 +963,7 @@
         <button class="btn btn-primary" onclick="openGradeSelectModal()">学年学期を選択</button>
         <button class="btn btn-primary" style="margin-top: 10px;" onclick="openSelectiveRequiredOnlyModal()">選択必修を選ぶ</button>
         <button class="btn btn-primary" style="margin-top: 10px;" onclick="openManualAddModal()">+ 科目を追加</button>
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openHelpModal()">❓ 使い方説明</button>
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="clearSchedule()">リセット</button>
       </aside>
     </div>
@@ -1117,6 +1163,48 @@
       <div class="modal-buttons">
         <button type="button" class="btn btn-secondary btn-sm" onclick="closeSlotAddModal()">閉じる</button>
         <button type="button" class="btn btn-primary btn-sm" onclick="openManualAddFromSlot()">手動で追加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 使い方 -->
+  <div class="modal" id="helpModal">
+    <div class="modal-content help-content">
+      <h2>📖 使い方</h2>
+
+      <h3 class="help-heading">登録の流れ</h3>
+      <ol class="help-steps">
+        <li><b>「学年学期を選択」</b>で学年と学期を選びます。その学期の必修科目が自動で入ります。</li>
+        <li><b>「選択必修を選ぶ」</b>で、グループごとに履修する科目を選びます。すでに入っている授業と時間が重なる選択肢は、選べないようになっています。</li>
+        <li><b>空いているコマをクリック</b>すると、そのコマに入れられる授業が出ます。グリッドの下の<b>「選択可能な選択授業」</b>からも選べます（曜日・時限・分類でしぼり込めます）。</li>
+        <li><b>「+ 科目を追加」</b>は、集中講義や再履修など、例外的な授業を登録するときに使います。</li>
+        <li>登録が終わったら、グリッドの授業をクリックして詳細を開き、<b>時間割コードをクリック</b>します。コードがコピーされ、授業の右上に ✓ が付きます。履修登録し忘れを防げます。</li>
+      </ol>
+
+      <h3 class="help-heading">画面の見方</h3>
+      <ul class="help-list">
+        <li>グリッドの上に、選択中の学年・学期が出ます。</li>
+        <li>授業の色は区分を表します：
+          <span class="class-type-tag required">必修</span>
+          <span class="class-type-tag elective-required">選択必修</span>
+          <span class="class-type-tag elective">選択授業</span>
+          <span class="class-type-tag other">その他</span>
+        </li>
+        <li>空きコマの一覧では、必修と選択必修は最初は隠れています。チェックを入れると出ます。</li>
+        <li>単位数は「1科目＝2単位」で計算しています。スマートフォンでは、グリッドの右上にも出ます。</li>
+      </ul>
+
+      <h3 class="help-heading">そのほか</h3>
+      <ul class="help-list">
+        <li>登録した内容は自動で保存され、次に開いたときも残ります。</li>
+        <li>授業を消すときは、授業をクリックして詳細の「削除」を押します。全部消すときは「リセット」です（✓ の印も消えます）。</li>
+      </ul>
+
+      <div class="modal-buttons">
+        <label class="help-skip">
+          <input type="checkbox" id="helpDontShow"> 次回から自動で表示しない
+        </label>
+        <button type="button" class="btn btn-primary btn-sm" onclick="closeHelpModal()">閉じる</button>
       </div>
     </div>
   </div>
@@ -2080,6 +2168,19 @@
       refreshCopiedMarks();
     }
 
+    // ---------- 使い方 ----------
+    const HELP_SKIP_KEY = 'helpDontShow';
+
+    function openHelpModal() {
+      document.getElementById('helpDontShow').checked = localStorage.getItem(HELP_SKIP_KEY) === 'true';
+      document.getElementById('helpModal').classList.add('active');
+    }
+
+    function closeHelpModal() {
+      localStorage.setItem(HELP_SKIP_KEY, document.getElementById('helpDontShow').checked ? 'true' : 'false');
+      document.getElementById('helpModal').classList.remove('active');
+    }
+
     // 時間割の授業に対応する syllabus_data.js の科目を探す（時間割コード＋科目名、なければ時間割コードのみで一致）
     function findSyllabusCourse(code, name) {
       if (!code && !name) return null;
@@ -2381,6 +2482,17 @@
       updateStats();
       renderElectiveList();
       refreshCopiedMarks();
+
+      // 初回のみ使い方を自動で表示
+      if (localStorage.getItem(HELP_SKIP_KEY) !== 'true' && !hasExistingSchedule) {
+        openHelpModal();
+      }
+
+      document.getElementById('helpModal').addEventListener('click', (e) => {
+        if (e.target.id === 'helpModal') {
+          closeHelpModal();
+        }
+      });
 
       // モーダルイベントリスナー
       document.getElementById('gradeSelectModal').addEventListener('click', (e) => {
