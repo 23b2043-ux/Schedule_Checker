@@ -31,22 +31,11 @@ const CURRICULUM = {
     { code: 'B30B02A2', name: '共通基盤ワークショップ2B', periods: [3, 4], day: 'mon', type: 'required' }
   ],
   '3_1': [
-    { code: 'ML301', name: '深層学習', period: 1, day: 'mon', type: 'required' },
-    { code: 'CHE301', name: 'プロセス工学', period: 1, day: 'wed', type: 'elective' },
-    { code: 'CS310', name: 'クラウドコンピューティング', period: 2, day: 'tue', type: 'elective-required' },
-    { code: 'SEC301', name: 'セキュリティ概論', period: 2, day: 'thu', type: 'elective' },
-    { code: 'DS301', name: 'データ可視化', period: 3, day: 'mon', type: 'other' },
-    { code: 'ENG301', name: '設計製図演習', period: 3, day: 'fri', type: 'other' },
-    { code: 'MKT301', name: 'マーケティング戦略', period: 4, day: 'wed', type: 'other' }
+    { code: 'Dummy', name: '未設定', period: 1, day: 'mon', type: 'required' },
   ],
   '3_2': [
-    { code: 'ML302', name: '自然言語処理', period: 1, day: 'mon', type: 'required' },
-    { code: 'BIO301', name: 'バイオテクノロジー', period: 1, day: 'wed', type: 'elective' },
-    { code: 'IOT301', name: 'IoT実践', period: 2, day: 'tue', type: 'elective-required' },
-    { code: 'CS320', name: 'システム設計', period: 2, day: 'thu', type: 'elective' },
-    { code: 'DS302', name: 'ビッグデータ分析', period: 3, day: 'mon', type: 'other' },
-    { code: 'PM301', name: 'プロジェクト管理', period: 3, day: 'fri', type: 'other' },
-    { code: 'SEM301', name: 'ゼミナール', period: 4, day: 'thu', type: 'required' }
+    { code: 'Dummy', name: '未設定', period: 1, day: 'mon', type: 'required' },
+
   ],
   '4_1': [
     { code: 'THESIS401', name: '卒業研究A', period: 1, day: 'mon', type: 'required' }
