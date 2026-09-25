@@ -276,7 +276,7 @@ const ELECTIVE_REQUIRED_GROUPS = {
 
   // 3年後期：社会人基礎３年次選択必修科目
   group_14: {
-    name: "社会人基礎３年次選択必修科目",
+    name: "社会人基礎３年次選択必修科目(曜日順)",
     description: "1つ選択してください",
     grade: [3],
     semester: ["2"],
