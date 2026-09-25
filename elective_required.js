@@ -198,26 +198,104 @@ const ELECTIVE_REQUIRED_GROUPS = {
     ]
   },
 
-  // 2年後期：スポーツで健康を科学する(必修)
+  // 2年前期：スポーツで健康を科学する(必修)
   group_8: {
     name: "スポーツで健康を科学する(必修)",
+    description: "1つ選択してください",
+    grade: [2],
+    semester: ["1"],
+    maxSelect: 1,
+    courses: [
+      { code: "B30H01A2", name: "スポーツで健康を科学する(榊)水1-1", period: 1, day: "wed", type: "required" },
+      { code: "B30H01B2", name: "スポーツで健康を科学する(松原)水1-2", period: 1, day: "wed", type: "required" },
+      { code: "B30H01C2", name: "スポーツで健康を科学する(中務)水1-3", period: 1, day: "wed", type: "required" },
+      { code: "B30H01D2", name: "スポーツで健康を科学する(榊)水2-1", period: 2, day: "wed", type: "required" },
+      { code: "B30H01E2", name: "スポーツで健康を科学する(松原)水2-2", period: 2, day: "wed", type: "required" },
+      { code: "B30H01F2", name: "スポーツで健康を科学する(中務)水2-3", period: 2, day: "wed", type: "required" },
+      { code: "B30H01G2", name: "スポーツで健康を科学する(榊)木1-1", period: 1, day: "thu", type: "required" },
+      { code: "B30H01H2", name: "スポーツで健康を科学する(是石)木1-2", period: 1, day: "thu", type: "required" },
+      { code: "B30H01J2", name: "スポーツで健康を科学する(松原)木1-3", period: 1, day: "thu", type: "required" },
+      { code: "B30H01K2", name: "スポーツで健康を科学する(榊)木2-1", period: 2, day: "thu", type: "required" },
+      { code: "B30H01L2", name: "スポーツで健康を科学する(東條)木2-2", period: 2, day: "thu", type: "required" },
+      { code: "B30H01M2", name: "スポーツで健康を科学する(松原)木2-3", period: 2, day: "thu", type: "required" }
+    ]
+  },
+
+  // 2年前期：オブジェクト指向プログラミング実習
+  group_11: {
+    name: "オブジェクト指向プログラミング実習",
+    description: "1つ選択してください",
+    grade: [2],
+    semester: ["1"],
+    maxSelect: 1,
+    periods: [1, 2],
+    day: "fri",
+    courses: [
+      { code: "B31L08A2", name: "オブジェクト指向プログラミング実習（斎藤）(AI/情報工学)", type: "required" },
+      { code: "B31L08B2", name: "オブジェクト指向プログラミング実習（松田）(AI/情報工学)", type: "required" },
+      { code: "B31L08C2", name: "オブジェクト指向プログラミング実習（山本）(AI/情報工学)", type: "required" },
+      { code: "B31L08D2", name: "オブジェクト指向プログラミング実習（本多）(メディア専)", type: "required" },
+      { code: "B31L08E2", name: "オブジェクト指向プログラミング実習（川上）(メディア専)", type: "required" }
+    ]
+  },
+
+  // 2年前期：共通基盤ワークショップ２A
+  group_12: {
+    name: "共通基盤ワークショップ２A",
+    description: "1つ選択してください",
+    grade: [2],
+    semester: ["1"],
+    maxSelect: 1,
+    periods: [3, 4],
+    day: "mon",
+    courses: []
+  },
+
+  // 2年後期：スポーツで健康をデザインする
+  group_13: {
+    name: "スポーツで健康をデザインする",
     description: "1つ選択してください",
     grade: [2],
     semester: ["2"],
     maxSelect: 1,
     courses: [
-      { code: "B30H02A2", name: "スポーツで健康を科学する(榊)水1-1", period: 1, day: "wed", type: "required" },
-      { code: "B30H02B2", name: "スポーツで健康を科学する(松原)水1-2", period: 1, day: "wed", type: "required" },
-      { code: "B30H02C2", name: "スポーツで健康を科学する(中務)水1-3", period: 1, day: "wed", type: "required" },
-      { code: "B30H02D2", name: "スポーツで健康を科学する(榊)水2-1", period: 2, day: "wed", type: "required" },
-      { code: "B30H02E2", name: "スポーツで健康を科学する(松原)水2-2", period: 2, day: "wed", type: "required" },
-      { code: "B30H02F2", name: "スポーツで健康を科学する(中務)水2-3", period: 2, day: "wed", type: "required" },
-      { code: "B30H02G2", name: "スポーツで健康を科学する(榊)木1-1", period: 1, day: "thu", type: "required" },
-      { code: "B30H02H2", name: "スポーツで健康を科学する(是石)木1-2", period: 1, day: "thu", type: "required" },
-      { code: "B30H02J2", name: "スポーツで健康を科学する(松原)木1-3", period: 1, day: "thu", type: "required" },
-      { code: "B30H02K2", name: "スポーツで健康を科学する(榊)木2-1", period: 2, day: "thu", type: "required" },
-      { code: "B30H02L2", name: "スポーツで健康を科学する(東條)木2-2", period: 2, day: "thu", type: "required" },
-      { code: "B30H02M2", name: "スポーツで健康を科学する(松原)木2-3", period: 2, day: "thu", type: "required" }
+      { code: "B30H02B2", name: "スポーツで健康をデザインする(榊)水1-1", period: 1, day: "wed", type: "required" },
+      { code: "B30H02B2", name: "スポーツで健康をデザインする(松原)水1-2", period: 1, day: "wed", type: "required" },
+      { code: "B30H02C2", name: "スポーツで健康をデザインする(中務)水1-3", period: 1, day: "wed", type: "required" },
+      { code: "B30H02D2", name: "スポーツで健康をデザインする(榊)水2-1", period: 2, day: "wed", type: "required" },
+      { code: "B30H02F2", name: "スポーツで健康をデザインする(松原)水2-2", period: 2, day: "wed", type: "required" },
+      { code: "B30H02E2", name: "スポーツで健康をデザインする(中務)水2-3", period: 2, day: "wed", type: "required" },
+      { code: "B30H02G2", name: "スポーツで健康をデザインする(榊)木1-1", period: 1, day: "thu", type: "required" },
+      { code: "B30H02H2", name: "スポーツで健康をデザインする(是石)木1-2", period: 1, day: "thu", type: "required" },
+      { code: "B30H02J2", name: "スポーツで健康をデザインする(松原)木1-3", period: 1, day: "thu", type: "required" },
+      { code: "B30H02K2", name: "スポーツで健康をデザインする(榊)木2-1", period: 2, day: "thu", type: "required" },
+      { code: "B30H02L2", name: "スポーツで健康をデザインする(東條)木2-2", period: 2, day: "thu", type: "required" },
+      { code: "B30H02M2", name: "スポーツで健康をデザインする(松原)木2-3", period: 2, day: "thu", type: "required" }
+    ]
+  },
+
+  // 3年後期：社会人基礎３年次選択必修科目
+  group_14: {
+    name: "社会人基礎３年次選択必修科目",
+    description: "1つ選択してください",
+    grade: [3],
+    semester: ["2"],
+    maxSelect: 1,
+    courses: [
+      { code: "B30F10K3", name: "外交と安全保障", period: 2, day: "mon", type: "elective-required" },
+      { code: "B30F09K3", name: "国際政治経済", period: 3, day: "mon", type: "elective-required" },
+      { code: "B30F12K3", name: "市場と経済", period: 3, day: "mon", type: "elective-required" },
+      { code: "B30F09L3", name: "国際政治経済", period: 2, day: "tue", type: "elective-required" },
+      { code: "B30F11K3", name: "グローバルデータ分析", period: 2, day: "tue", type: "elective-required" },
+      { code: "B30F14K3", name: "会計と財務", period: 2, day: "tue", type: "elective-required" },
+      { code: "B30F11L3", name: "グローバルデータ分析", period: 3, day: "tue", type: "elective-required" },
+      { code: "B30F13L3", name: "企業経営", period: 3, day: "tue", type: "elective-required" },
+      { code: "B30F14L3", name: "会計と財務", period: 3, day: "tue", type: "elective-required" },
+      { code: "B30F13L3", name: "企業経営", period: 4, day: "tue", type: "elective-required" },
+      { code: "B30F10L3", name: "外交と安全保障", period: 2, day: "wed", type: "elective-required" },
+      { code: "B30F09M3", name: "国際政治経済", period: 2, day: "thu", type: "elective-required" },
+      { code: "B30F12L3", name: "市場と経済", period: 3, day: "thu", type: "elective-required" },
+      { code: "B30F13M3", name: "企業経営", period: 4, day: "thu", type: "elective-required" }
     ]
   }
 };
