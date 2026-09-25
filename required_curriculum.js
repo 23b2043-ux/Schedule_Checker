@@ -34,7 +34,7 @@ const CURRICULUM = {
     { code: 'Dummy', name: '未設定', period: 1, day: 'mon', type: 'required' },
   ],
   '3_2': [
-    { code: 'Dummy', name: '未設定', period: 1, day: 'mon', type: 'required' },
+    { code: 'B30D03K3', name: '進路研究', period: 1, day: 'wed', type: 'required' }
 
   ],
   '4_1': [
